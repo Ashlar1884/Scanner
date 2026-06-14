@@ -1,0 +1,25 @@
+name: Sync Bot State
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'   # every 5 minutes
+  workflow_dispatch:          # allow manual trigger
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch state.json from VPS
+        run: |
+          curl -sf --max-time 10 http://161.35.173.113:8080/state.json -o state.json || echo "VPS unreachable"
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name  "scanner-bot"
+          git config user.email "bot@scanner"
+          git add state.json
+          git diff --cached --quiet && echo "No changes" || git commit -m "sync state $(date -u +%H:%M)"
+          git push
