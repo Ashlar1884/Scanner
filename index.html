@@ -594,11 +594,22 @@ async function fetchBotState(){
     if(!r.ok)throw new Error('HTTP '+r.status);
     BOT_STATE=await r.json();
     BOT_LAST_FETCH=Date.now();
+    syncBotTradesToAP();
     renderAPDashboard();
   }catch(e){
-    // Bot unreachable — keep old state, just update timestamp
     BOT_LAST_FETCH=Date.now();
   }
+}
+
+// Mirror bot's open trades into the local Auto Portfolio
+function syncBotTradesToAP(){
+  if(!BOT_STATE||!BOT_STATE.open_trades)return;
+  BOT_STATE.open_trades.forEach(bt=>{
+    if(!bt.sym||!bt.dir||!bt.entry||!bt.stop||!bt.tp1)return;
+    // apOpenTrade handles all duplicate/cap/cooldown checks internally
+    apOpenTrade(bt.sym, bt.dir, bt.entry, bt.entry, bt.stop, bt.tp1);
+    console.log(`[AP] Bot sync: ${bt.dir} ${bt.sym} @ ${bt.entry}`);
+  });
 }
 
 function botSyncHTML(){
