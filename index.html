@@ -685,7 +685,7 @@ function renderSpectreGrid(){
     const tradeInfo=inTrade?(()=>{
       const t=openTrades.find(t=>t.sym===sym);
       return`<div style="margin-top:4px;padding:4px 6px;background:#0a1a0a;border:1px solid #4ade8033;border-radius:4px;font-size:0.58rem;color:#4ade80">
-        📈 IN TRADE · Entry ${t.entry?.toPrecision?.(5)||t.entry} · TP ${t.tp?.toPrecision?.(5)||t.tp}
+        📈 IN TRADE · Entry ${t.entry?.toPrecision?.(5)||t.entry} · TP ${(t.tp||t.tp1)?.toPrecision?.(5)||(t.tp||t.tp1)||'–'}
       </div>`;
     })():'';
 
@@ -754,7 +754,7 @@ function renderSpectrePortfolio(){
       <span style="font-size:0.65rem;font-weight:900;color:#4ade80">LONG</span>
       <span style="font-size:0.68rem;font-weight:900;color:#e2e8f0">${t.sym}</span>
       <span style="font-size:0.6rem;color:#7a7a9a">@ ${t.entry?.toPrecision?.(5)||t.entry}</span>
-      <span style="font-size:0.58rem;color:#4ade80;margin-left:auto">TP ${t.tp?.toPrecision?.(5)||t.tp}</span>
+      <span style="font-size:0.58rem;color:#4ade80;margin-left:auto">TP ${(t.tp||t.tp1)?.toPrecision?.(5)||(t.tp||t.tp1)||'–'}</span>
       <span style="font-size:0.55rem;color:#3a3a58">${openedAt}</span>
     </div>`;
   }).join('');
