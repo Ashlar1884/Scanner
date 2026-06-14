@@ -161,6 +161,22 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 .scalp-ext-hdr{display:flex;align-items:center;gap:8px;cursor:pointer;padding:7px 0;border-top:1px solid var(--border);user-select:none;}
 .scalp-ext-hdr:hover{opacity:0.8;}
 .scalp-ext-title{font-size:0.78rem;font-weight:800;color:var(--muted2);}
+/* ── Spectre section ── */
+.spectre-hdr{display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 16px;border-radius:12px;background:linear-gradient(135deg,#0e0a1a,#0a0a14);border:1px solid #4a3a7a;user-select:none;margin-bottom:10px;}
+.spectre-hdr:hover{border-color:#a78bfa;}
+.spectre-title{font-size:0.88rem;font-weight:900;background:linear-gradient(90deg,#a78bfa,#7c3aed,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:0.06em;}
+.spectre-badge{font-size:0.62rem;font-weight:700;color:#a78bfa;background:#1a0a2e;padding:2px 8px;border-radius:4px;border:1px solid #4a3a7a;}
+.spectre-sub{font-size:0.62rem;color:#5a4a8a;margin-left:auto;}
+.spectre-card{background:#0a0a14;border:1px solid #1e1e3a;border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;transition:border-color 0.2s;}
+.spectre-card.signal{border-color:#a78bfa;box-shadow:0 0 12px #a78bfa22;}
+.spectre-card.in-trade{border-color:#4ade80;box-shadow:0 0 12px #4ade8033;}
+.spectre-sym{font-size:0.88rem;font-weight:900;color:#e2e8f0;letter-spacing:0.03em;}
+.spectre-price{font-size:0.7rem;color:#7a7a9a;}
+.spectre-cond{display:flex;flex-direction:column;gap:2px;}
+.spectre-cond-row{display:flex;align-items:center;gap:5px;font-size:0.6rem;}
+.spectre-cond-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.spectre-bar{height:3px;border-radius:2px;background:#1e1e3a;margin-top:4px;overflow:hidden;}
+.spectre-bar-fill{height:100%;border-radius:2px;transition:width 0.4s;}
 /* ── Olympians section ── */
 .olympians-hdr{display:flex;align-items:center;gap:10px;cursor:pointer;padding:10px 16px;border-radius:12px;background:linear-gradient(135deg,#1a1400,#0f1a0a);border:1px solid #5a4a00;user-select:none;margin-bottom:10px;}
 .olympians-hdr:hover{border-color:#c9a227;}
@@ -363,6 +379,19 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
     <div id="alert-log"><div class="alert-log-empty">No ENTER signals fired yet this session.</div></div>
   </div>
   <div id="ap-dashboard-wrap"></div>
+
+  <!-- ── SPECTRE ── -->
+  <div class="scalp-ext-wrap" style="margin-bottom:10px">
+    <div class="spectre-hdr" onclick="toggleSection('spectre-grid','spectre-toggle-icon')">
+      <span style="font-size:1.1rem">👻</span>
+      <span class="spectre-title">SPECTRE</span>
+      <span class="spectre-badge">~93.9% WR · 10.2/wk</span>
+      <span id="spectre-toggle-icon" class="scalp-ext-icon" style="color:#a78bfa">▼</span>
+      <span class="spectre-sub">5 tokens · Kalman Hybrid v3 · LONG ONLY · TP +1% / SL -6.6%</span>
+    </div>
+    <div id="spectre-grid" class="scalp-grid" style="margin-top:8px"></div>
+  </div>
+
   <div class="scalp-ext-wrap">
     <div class="olympians-hdr" onclick="toggleSection('scalp-grid-olympians','olympians-toggle-icon')">
       <span style="font-size:1.1rem">🏛️</span>
@@ -596,9 +625,91 @@ async function fetchBotState(){
     BOT_LAST_FETCH=Date.now();
     syncBotTradesToAP();
     renderAPDashboard();
+    renderSpectreGrid();
   }catch(e){
     BOT_LAST_FETCH=Date.now();
   }
+}
+
+// ── SPECTRE — render 5-token Kalman Hybrid cards from bot state.json ──
+function renderSpectreGrid(){
+  const grid=document.getElementById('spectre-grid');
+  if(!grid)return;
+  const SPECTRE_TOKENS=['BTC','ETH','SOL','XRP','AAVE'];
+  const COND_LABELS={
+    'daily_200_ema': 'Daily 200 EMA',
+    '1h_kalman_up':  '1H Kalman UP',
+    'vwap_bias':     'VWAP Bias',
+    'bb_lower_touch':'BB Lower Touch',
+    'rsi_42_70':     'RSI 42–70'
+  };
+
+  if(!BOT_STATE||!BOT_STATE.last_scan){
+    grid.innerHTML=`<div style="grid-column:1/-1;color:#3a3a58;font-size:0.7rem;padding:12px">
+      ⏳ Waiting for bot data… (checks every 30s)
+    </div>`;
+    return;
+  }
+
+  const openTrades=BOT_STATE.open_trades||[];
+  const closedTrades=BOT_STATE.closed_trades||[];
+  const wins=closedTrades.filter(t=>t.result==='tp').length;
+  const wr=closedTrades.length?Math.round(wins/closedTrades.length*100):null;
+  const age=Math.round((Date.now()-new Date(BOT_STATE.updated).getTime())/1000);
+
+  const cards=SPECTRE_TOKENS.map(sym=>{
+    const scan=BOT_STATE.last_scan[sym]||{};
+    const conds=scan.conditions||{};
+    const met=scan.conditions_met??0;
+    const total=scan.conditions_total??5;
+    const inTrade=openTrades.some(t=>t.sym===sym);
+    const signal=scan.signal==='long';
+    const price=scan.price;
+    const rsi=scan.rsi;
+    const barPct=Math.round(met/total*100);
+    const barCol=met===5?'#a78bfa':met>=3?'#7c3aed':'#3a2a5a';
+
+    const condRows=Object.entries(COND_LABELS).map(([k,label])=>{
+      const pass=conds[k];
+      const dot=pass?'#4ade80':'#1e1e3a';
+      const txt=pass?'#94a3b8':'#3a3a58';
+      return`<div class="spectre-cond-row">
+        <div class="spectre-cond-dot" style="background:${dot};${pass?'box-shadow:0 0 4px '+dot+'88':''}"></div>
+        <span style="color:${txt}">${label}</span>
+      </div>`;
+    }).join('');
+
+    const tradeInfo=inTrade?(()=>{
+      const t=openTrades.find(t=>t.sym===sym);
+      return`<div style="margin-top:4px;padding:4px 6px;background:#0a1a0a;border:1px solid #4ade8033;border-radius:4px;font-size:0.58rem;color:#4ade80">
+        📈 IN TRADE · Entry ${t.entry?.toPrecision?.(5)||t.entry} · TP ${t.tp?.toPrecision?.(5)||t.tp}
+      </div>`;
+    })():'';
+
+    const cardClass=`spectre-card${signal?' signal':''}${inTrade?' in-trade':''}`;
+    return`<div class="${cardClass}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <span class="spectre-sym">${sym}</span>
+        <span style="font-size:0.6rem;color:${met===5?'#a78bfa':met>=3?'#7c3aed':'#3a3a58'};font-weight:700">${met}/${total}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between">
+        <span class="spectre-price">${price?'$'+(price>100?price.toLocaleString(undefined,{maximumFractionDigits:2}):price.toPrecision(5)):'–'}</span>
+        ${rsi?`<span style="font-size:0.58rem;color:#5a4a8a">RSI ${rsi}</span>`:''}
+      </div>
+      <div class="spectre-cond">${condRows}</div>
+      <div class="spectre-bar"><div class="spectre-bar-fill" style="width:${barPct}%;background:${barCol}"></div></div>
+      ${signal&&!inTrade?`<div style="margin-top:2px;text-align:center;font-size:0.62rem;font-weight:900;color:#a78bfa;letter-spacing:0.05em">🟣 SIGNAL READY</div>`:''}
+      ${tradeInfo}
+    </div>`;
+  }).join('');
+
+  // Summary row
+  const lastUpdated=`<div style="grid-column:1/-1;display:flex;justify-content:space-between;align-items:center;padding:4px 2px;font-size:0.58rem;color:#3a3a58">
+    <span>Bot updated ${age}s ago${wr!==null?' · Paper WR: '+wr+'% ('+closedTrades.length+' trades)':''}</span>
+    <span>${openTrades.length} open trade${openTrades.length!==1?'s':''}</span>
+  </div>`;
+
+  grid.innerHTML=lastUpdated+cards;
 }
 
 // Mirror bot's open trades directly into AP — bypasses market context filters
