@@ -601,15 +601,34 @@ async function fetchBotState(){
   }
 }
 
-// Mirror bot's open trades into the local Auto Portfolio
+// Mirror bot's open trades directly into AP — bypasses market context filters
+// because the bot already validated the setup server-side
 function syncBotTradesToAP(){
   if(!BOT_STATE||!BOT_STATE.open_trades)return;
+  const ap=loadAP();
+  let changed=false;
   BOT_STATE.open_trades.forEach(bt=>{
     if(!bt.sym||!bt.dir||!bt.entry||!bt.stop||!bt.tp1)return;
-    // apOpenTrade handles all duplicate/cap/cooldown checks internally
-    apOpenTrade(bt.sym, bt.dir, bt.entry, bt.entry, bt.stop, bt.tp1);
-    console.log(`[AP] Bot sync: ${bt.dir} ${bt.sym} @ ${bt.entry}`);
+    // Skip if already open for this symbol
+    if(ap.trades.find(t=>t.sym===bt.sym&&t.status==='open'))return;
+    const isLong=bt.dir==='LONG';
+    const stopPct=Math.abs(bt.entry-bt.stop)/bt.entry;
+    const tpPct=Math.abs(bt.tp1-bt.entry)/bt.entry;
+    if(!stopPct||!tpPct)return;
+    const riskAmount=ap.balance*AP_RISK_PCT;
+    const positionSize=riskAmount/stopPct;
+    const stop=isLong?bt.entry*(1-stopPct):bt.entry*(1+stopPct);
+    const t1=isLong?bt.entry*(1+tpPct):bt.entry*(1-tpPct);
+    ap.trades.unshift({
+      sym:bt.sym, dir:bt.dir, entry:bt.entry,
+      stop, t1, riskAmount, positionSize,
+      openTime:Date.now(), status:'open',
+      closePrice:null, closeTime:null, closeReason:null, pnl:null
+    });
+    changed=true;
+    console.log(`[AP] Bot trade mirrored: ${bt.dir} ${bt.sym} @ ${bt.entry}`);
   });
+  if(changed){saveAP(ap);renderAPDashboard();}
 }
 
 function botSyncHTML(){
