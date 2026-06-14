@@ -581,6 +581,74 @@ const AP_COOLDOWN_SL=2*60*60*1000;  // 2h cooldown after SL hit (1H candle = no 
 const AP_COOLDOWN_TP=1*60*60*1000;  // 1h cooldown after TP hit
 const AP_OPENING=new Set(); // in-memory lock to prevent race conditions
 
+// ── Bot state sync (VPS) ──────────────────────────────────────────────────
+// Bot state: fetched from GitHub (HTTPS-safe) — bot pushes state.json to repo every cycle
+const BOT_URL='https://raw.githubusercontent.com/Ashlar1884/Scanner/main/state.json';
+const BOT_URL_DIRECT='http://161.35.173.113:8080/state.json'; // fallback for local file use
+let BOT_STATE=null; // latest state.json from VPS bot
+let BOT_LAST_FETCH=0;
+
+async function fetchBotState(){
+  try{
+    const r=await fetch(BOT_URL,{cache:'no-store'});
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    BOT_STATE=await r.json();
+    BOT_LAST_FETCH=Date.now();
+    renderAPDashboard();
+  }catch(e){
+    // Bot unreachable — keep old state, just update timestamp
+    BOT_LAST_FETCH=Date.now();
+  }
+}
+
+function botSyncHTML(){
+  if(!BOT_STATE){
+    return`<div style="font-size:0.6rem;color:#3a3a58;margin-top:6px;padding:4px 6px;border:1px solid #1e1e3a;border-radius:4px">
+      ⚪ Bot sync not yet loaded — fetching…
+    </div>`;
+  }
+  const age=Math.round((Date.now()-new Date(BOT_STATE.updated).getTime())/1000);
+  const fresh=age<120;
+  const dot=fresh?'🟢':'🟡';
+  const regime=BOT_STATE.btc_regime==='bull'?'BTC Bull 🟢':BOT_STATE.btc_regime==='bear'?'BTC Bear 🔴':'BTC Unknown';
+  const openTrades=BOT_STATE.open_trades||[];
+  const closedTrades=BOT_STATE.closed_trades||[];
+  const wins=closedTrades.filter(t=>t.result==='tp');
+  const wr=closedTrades.length?Math.round(wins.length/closedTrades.length*100):null;
+  const totalPnl=closedTrades.reduce((s,t)=>s+(t.pnl_pct||0),0);
+
+  const tradeRows=openTrades.map(t=>{
+    const isLong=t.dir==='LONG';
+    const col=isLong?'#4ade80':'#f87171';
+    const openedAt=new Date(t.open_time).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:1px solid #1e1e3a">
+      <span style="color:${col};font-weight:800;font-size:0.65rem">${t.dir} ${t.sym}</span>
+      <span style="color:#c4b5fd;font-size:0.6rem">Entry ${t.entry?.toPrecision?.(5)||t.entry}</span>
+      <span style="color:#3a3a58;font-size:0.55rem">Score ${t.score} · ${openedAt}</span>
+    </div>`;
+  }).join('');
+
+  const closedRows=closedTrades.slice(0,6).map(t=>{
+    const win=t.result==='tp';
+    const col=win?'#4ade80':'#f87171';
+    return`<span title="${t.sym} ${t.dir} · ${win?'TP':'SL'} · ${t.pnl_pct>=0?'+':''}${t.pnl_pct}%" style="color:${col};font-size:0.65rem;font-weight:800;cursor:default">${win?'✓':'✗'}${t.dir==='LONG'?'L':'S'}</span>`;
+  }).join(' ');
+
+  return`<div style="margin-top:8px;padding:6px 8px;background:#0a0a14;border:1px solid ${fresh?'#a78bfa33':'#3a3a5833'};border-radius:6px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span style="font-size:0.65rem;font-weight:900;color:#a78bfa">${dot} BOT SYNC</span>
+      <span style="font-size:0.55rem;color:#3a3a58">${regime} · Updated ${age}s ago</span>
+    </div>
+    ${openTrades.length?`
+      <div style="font-size:0.55rem;color:#3a3a58;margin-bottom:3px">OPEN PAPER TRADES (${openTrades.length})</div>
+      ${tradeRows}
+    `:`<div style="font-size:0.6rem;color:#3a3a58">No open bot trades</div>`}
+    ${closedTrades.length?`
+      <div style="margin-top:4px;font-size:0.55rem;color:#3a3a58">CLOSED: ${wr}% WR · ${totalPnl>=0?'+':''}${totalPnl.toFixed(1)}% total · ${closedRows}</div>
+    `:''}
+  </div>`;
+}
+
 function loadAP(){
   try{
     const d=JSON.parse(localStorage.getItem(AP_KEY)||'null');
@@ -736,6 +804,7 @@ function renderAPDashboard(){
     ${recentTrades?`<div class="ap-recent"><span style="color:#3a3a58;font-size:0.6rem">Recent:</span> ${recentTrades}</div>`:''}
     ${!closed.length&&!open.length?'<div style="color:#3a3a58;font-size:0.63rem;padding:2px 0">Waiting for first ENTER signal…</div>':''}
     ${apLogHTML(ap)}
+    ${botSyncHTML()}
   </div>`;
 }
 
@@ -4027,9 +4096,11 @@ async function init(firstRun=false){
 init(true);
 renderTradeLog();
 renderAPDashboard();
+fetchBotState(); // initial bot state fetch
 setInterval(()=>{
   // TTL cache handles staleness — no need to blast everything
   init();
+  fetchBotState(); // sync bot state every 30s
 },30*1000);
 </script>
 </body>
