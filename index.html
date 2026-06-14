@@ -608,17 +608,17 @@ function syncBotTradesToAP(){
   const ap=loadAP();
   let changed=false;
   BOT_STATE.open_trades.forEach(bt=>{
-    if(!bt.sym||!bt.dir||!bt.entry||!bt.stop||!bt.tp1)return;
+    if(!bt.sym||!bt.dir||!bt.entry||!bt.sl||!bt.tp)return;
     // Skip if already open for this symbol
     if(ap.trades.find(t=>t.sym===bt.sym&&t.status==='open'))return;
     const isLong=bt.dir==='LONG';
-    const stopPct=Math.abs(bt.entry-bt.stop)/bt.entry;
-    const tpPct=Math.abs(bt.tp1-bt.entry)/bt.entry;
+    const stopPct=Math.abs(bt.entry-bt.sl)/bt.entry;
+    const tpPct=Math.abs(bt.tp-bt.entry)/bt.entry;
     if(!stopPct||!tpPct)return;
     const riskAmount=ap.balance*AP_RISK_PCT;
     const positionSize=riskAmount/stopPct;
-    const stop=isLong?bt.entry*(1-stopPct):bt.entry*(1+stopPct);
-    const t1=isLong?bt.entry*(1+tpPct):bt.entry*(1-tpPct);
+    const stop=bt.sl;
+    const t1=bt.tp;
     ap.trades.unshift({
       sym:bt.sym, dir:bt.dir, entry:bt.entry,
       stop, t1, riskAmount, positionSize,
@@ -640,7 +640,7 @@ function botSyncHTML(){
   const age=Math.round((Date.now()-new Date(BOT_STATE.updated).getTime())/1000);
   const fresh=age<120;
   const dot=fresh?'🟢':'🟡';
-  const regime=BOT_STATE.btc_regime==='bull'?'BTC Bull 🟢':BOT_STATE.btc_regime==='bear'?'BTC Bear 🔴':'BTC Unknown';
+  const regime=BOT_STATE.strategy||'Kalman Hybrid v3';
   const openTrades=BOT_STATE.open_trades||[];
   const closedTrades=BOT_STATE.closed_trades||[];
   const wins=closedTrades.filter(t=>t.result==='tp');
@@ -654,7 +654,7 @@ function botSyncHTML(){
     return`<div style="display:flex;justify-content:space-between;align-items:center;padding:2px 0;border-bottom:1px solid #1e1e3a">
       <span style="color:${col};font-weight:800;font-size:0.65rem">${t.dir} ${t.sym}</span>
       <span style="color:#c4b5fd;font-size:0.6rem">Entry ${t.entry?.toPrecision?.(5)||t.entry}</span>
-      <span style="color:#3a3a58;font-size:0.55rem">Score ${t.score} · ${openedAt}</span>
+      <span style="color:#3a3a58;font-size:0.55rem">TP +1.0% · SL -6.6% · ${openedAt}</span>
     </div>`;
   }).join('');
 
