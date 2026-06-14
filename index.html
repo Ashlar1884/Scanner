@@ -382,14 +382,17 @@ body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,san
 
   <!-- ── SPECTRE ── -->
   <div class="scalp-ext-wrap" style="margin-bottom:10px">
-    <div class="spectre-hdr" onclick="toggleSection('spectre-grid','spectre-toggle-icon')">
+    <div class="spectre-hdr" onclick="toggleSection('spectre-body','spectre-toggle-icon')">
       <span style="font-size:1.1rem">👻</span>
       <span class="spectre-title">SPECTRE</span>
       <span class="spectre-badge">~93.9% WR · 10.2/wk</span>
       <span id="spectre-toggle-icon" class="scalp-ext-icon" style="color:#a78bfa">▼</span>
       <span class="spectre-sub">5 tokens · Kalman Hybrid v3 · LONG ONLY · TP +1% / SL -6.6%</span>
     </div>
-    <div id="spectre-grid" class="scalp-grid" style="margin-top:8px"></div>
+    <div id="spectre-body">
+      <div id="spectre-grid" class="scalp-grid" style="margin-top:8px"></div>
+      <div id="spectre-portfolio" style="margin-top:10px"></div>
+    </div>
   </div>
 
   <div class="scalp-ext-wrap">
@@ -710,6 +713,83 @@ function renderSpectreGrid(){
   </div>`;
 
   grid.innerHTML=lastUpdated+cards;
+  renderSpectrePortfolio();
+}
+
+// ── SPECTRE Portfolio ─────────────────────────────────────────────────────────
+function renderSpectrePortfolio(){
+  const el=document.getElementById('spectre-portfolio');
+  if(!el)return;
+  if(!BOT_STATE){el.innerHTML='';return;}
+
+  const open=BOT_STATE.open_trades||[];
+  const closed=BOT_STATE.closed_trades||[];
+  if(!open.length&&!closed.length){el.innerHTML='';return;}
+
+  const wins=closed.filter(t=>t.result==='tp');
+  const losses=closed.filter(t=>t.result==='sl');
+  const wr=closed.length?Math.round(wins.length/closed.length*100):null;
+  const totalPnl=closed.reduce((s,t)=>s+(t.pnl_pct||0),0);
+  const avgWin=wins.length?(wins.reduce((s,t)=>s+(t.pnl_pct||0),0)/wins.length):null;
+  const avgLoss=losses.length?(losses.reduce((s,t)=>s+(t.pnl_pct||0),0)/losses.length):null;
+  const pf=avgLoss&&avgLoss<0&&avgWin>0?(wins.length*avgWin/Math.abs(losses.length*avgLoss)).toFixed(2):null;
+
+  // Stat pills
+  const stats=[
+    {label:'Trades',val:closed.length,col:'#7a7a9a'},
+    {label:'Win Rate',val:wr!==null?wr+'%':'–',col:wr>=90?'#4ade80':wr>=80?'#facc15':'#f87171'},
+    {label:'Total P&L',val:(totalPnl>=0?'+':'')+totalPnl.toFixed(2)+'%',col:totalPnl>=0?'#4ade80':'#f87171'},
+    {label:'Avg Win',val:avgWin!==null?'+'+avgWin.toFixed(2)+'%':'–',col:'#4ade80'},
+    {label:'Avg Loss',val:avgLoss!==null?avgLoss.toFixed(2)+'%':'–',col:'#f87171'},
+    {label:'Profit Factor',val:pf||'–',col:pf>=2?'#4ade80':pf>=1?'#facc15':'#f87171'},
+  ].map(s=>`<div style="display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 10px;background:#0a0a14;border:1px solid #1e1e3a;border-radius:6px;min-width:64px">
+    <span style="font-size:0.7rem;font-weight:900;color:${s.col}">${s.val}</span>
+    <span style="font-size:0.52rem;color:#3a3a58;text-transform:uppercase;letter-spacing:0.04em">${s.label}</span>
+  </div>`).join('');
+
+  // Open trades
+  const openRows=open.map(t=>{
+    const openedAt=new Date(t.open_time).toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    return`<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:#0a0a14;border:1px solid #4ade8033;border-radius:6px">
+      <span style="font-size:0.65rem;font-weight:900;color:#4ade80">LONG</span>
+      <span style="font-size:0.68rem;font-weight:900;color:#e2e8f0">${t.sym}</span>
+      <span style="font-size:0.6rem;color:#7a7a9a">@ ${t.entry?.toPrecision?.(5)||t.entry}</span>
+      <span style="font-size:0.58rem;color:#4ade80;margin-left:auto">TP ${t.tp?.toPrecision?.(5)||t.tp}</span>
+      <span style="font-size:0.55rem;color:#3a3a58">${openedAt}</span>
+    </div>`;
+  }).join('');
+
+  // Closed trade history (most recent 20)
+  const closedRows=closed.slice(0,20).map(t=>{
+    const win=t.result==='tp';
+    const col=win?'#4ade80':'#f87171';
+    const pnl=(t.pnl_pct>=0?'+':'')+t.pnl_pct+'%';
+    const closedAt=new Date(t.close_time).toLocaleString('en-GB',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+    return`<div style="display:flex;align-items:center;gap:8px;padding:4px 8px;border-bottom:1px solid #0e0e1e">
+      <span style="font-size:0.65rem;color:${col};font-weight:900">${win?'✅':'❌'}</span>
+      <span style="font-size:0.65rem;font-weight:900;color:#e2e8f0">${t.sym}</span>
+      <span style="font-size:0.58rem;color:#7a7a9a">@ ${t.entry?.toPrecision?.(5)||t.entry}</span>
+      <span style="font-size:0.62rem;color:${col};font-weight:700;margin-left:auto">${pnl}</span>
+      <span style="font-size:0.55rem;color:#3a3a58">${closedAt}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML=`
+  <div style="background:#060610;border:1px solid #2a1a4a;border-radius:10px;padding:12px 14px">
+    <div style="font-size:0.65rem;font-weight:900;color:#a78bfa;letter-spacing:0.08em;margin-bottom:10px">👻 SPECTRE PORTFOLIO</div>
+
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">${stats}</div>
+
+    ${open.length?`
+    <div style="font-size:0.58rem;color:#3a3a58;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px">Open Trades (${open.length})</div>
+    <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:12px">${openRows}</div>
+    `:''}
+
+    ${closed.length?`
+    <div style="font-size:0.58rem;color:#3a3a58;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:5px">Trade History (${closed.length} total)</div>
+    <div style="background:#0a0a14;border:1px solid #1e1e3a;border-radius:6px;overflow:hidden">${closedRows}</div>
+    `:''}
+  </div>`;
 }
 
 // Mirror bot's open trades directly into AP — bypasses market context filters
