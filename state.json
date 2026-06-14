@@ -1,0 +1,180 @@
+{
+  "updated": "2026-06-14T06:38:43Z",
+  "btc_regime": "bear",
+  "stability_required": 5,
+  "open_trades": [
+    {
+      "sym": "PEPE",
+      "dir": "SHORT",
+      "entry": 2.81e-06,
+      "stop": 2.8624e-06,
+      "tp1": 2.7262e-06,
+      "rr": 1.6,
+      "score": 75,
+      "open_time": "2026-06-14T05:32:11Z",
+      "open_ts": 1781415131,
+      "status": "open"
+    },
+    {
+      "sym": "BCH",
+      "dir": "SHORT",
+      "entry": 203.4,
+      "stop": 205.2523513097,
+      "tp1": 201.5476486903,
+      "rr": 1.0,
+      "score": 90,
+      "open_time": "2026-06-14T05:55:32Z",
+      "open_ts": 1781416532,
+      "status": "open"
+    }
+  ],
+  "closed_trades": [],
+  "last_scan": {
+    "AAVE": {
+      "sym": "AAVE",
+      "signal": "bull",
+      "score": 85,
+      "rsi": 47.8,
+      "adx": 29.6,
+      "price": 66.31,
+      "stable": 59,
+      "stable_required": 5
+    },
+    "PEPE": {
+      "sym": "PEPE",
+      "signal": "bear",
+      "score": 75,
+      "rsi": 39.0,
+      "adx": 44.1,
+      "price": 2.82e-06,
+      "stable": 59,
+      "stable_required": 5
+    },
+    "AVAX": {
+      "sym": "AVAX",
+      "signal": "bull",
+      "score": 85,
+      "rsi": 46.4,
+      "adx": 38.1,
+      "price": 6.666,
+      "stable": 23,
+      "stable_required": 5
+    },
+    "BCH": {
+      "sym": "BCH",
+      "signal": "bear",
+      "score": 90,
+      "rsi": 35.2,
+      "adx": 37.2,
+      "price": 203.3,
+      "stable": 39,
+      "stable_required": 5
+    },
+    "ALGO": {
+      "sym": "ALGO",
+      "signal": "neutral",
+      "score": 0,
+      "price": 0.0912
+    },
+    "XLM": {
+      "sym": "XLM",
+      "signal": "neutral",
+      "score": 0,
+      "price": 0.1864
+    },
+    "SOL": {
+      "sym": "SOL",
+      "signal": "neutral",
+      "score": 0,
+      "price": 68.2
+    },
+    "HBAR": {
+      "sym": "HBAR",
+      "signal": "bull",
+      "score": 75,
+      "rsi": 54.8,
+      "adx": 44.4,
+      "price": 0.07871,
+      "stable": 59,
+      "stable_required": 5
+    },
+    "XRP": {
+      "sym": "XRP",
+      "signal": "neutral",
+      "score": 0,
+      "price": 1.1495
+    },
+    "ETH": {
+      "sym": "ETH",
+      "signal": "bull",
+      "score": 85,
+      "rsi": 49.8,
+      "adx": 39.6,
+      "price": 1677.32,
+      "stable": 59,
+      "stable_required": 5
+    },
+    "BTC": {
+      "sym": "BTC",
+      "signal": "neutral",
+      "score": 0,
+      "price": 64272.19
+    },
+    "ADA": {
+      "sym": "ADA",
+      "signal": "neutral",
+      "score": 0,
+      "price": 0.1716
+    },
+    "QNT": {
+      "sym": "QNT",
+      "signal": "neutral",
+      "score": 0,
+      "price": 69.01
+    },
+    "NEAR": {
+      "sym": "NEAR",
+      "signal": "neutral",
+      "score": 0,
+      "price": 2.107
+    },
+    "LINK": {
+      "sym": "LINK",
+      "signal": "bear",
+      "score": 75,
+      "rsi": 44.5,
+      "adx": 23.2,
+      "price": 7.927,
+      "stable": 59,
+      "stable_required": 5
+    },
+    "ATOM": {
+      "sym": "ATOM",
+      "signal": "neutral",
+      "score": 0,
+      "price": 1.946
+    },
+    "LTC": {
+      "sym": "LTC",
+      "signal": "bull",
+      "score": 85,
+      "rsi": 57.3,
+      "adx": 36.9,
+      "price": 44.14,
+      "stable": 59,
+      "stable_required": 5
+    },
+    "DOT": {
+      "sym": "DOT",
+      "signal": "neutral",
+      "score": 0,
+      "price": 0.968
+    },
+    "VET": {
+      "sym": "VET",
+      "signal": "neutral",
+      "score": 0,
+      "price": 0.00504
+    }
+  }
+}
