@@ -2,8 +2,8 @@ name: Sync Bot State
 
 on:
   schedule:
-    - cron: '*/5 * * * *'   # every 5 minutes
-  workflow_dispatch:          # allow manual trigger
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -17,7 +17,13 @@ jobs:
 
       - name: Fetch state.json from VPS
         run: |
-          curl -sf --max-time 10 http://161.35.173.113:8080/state.json -o state.json || echo "VPS unreachable"
+          SYNC_TIME=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+          if curl -sf --max-time 10 http://161.35.173.113:8080/state.json | jq --arg t "$SYNC_TIME" '. + {github_sync: $t}' > state.json; then
+            echo "Fetched VPS state at $SYNC_TIME"
+          else
+            echo "VPS unreachable at $SYNC_TIME"
+            jq --arg t "$SYNC_TIME" '. + {github_sync: $t, vps_reachable: false}' state.json > state.json.tmp && mv state.json.tmp state.json || true
+          fi
 
       - name: Commit and push if changed
         run: |
