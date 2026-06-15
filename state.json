@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-15T04:32:17Z",
+  "updated": "2026-06-15T16:26:19Z",
   "strategy": "Kalman Hybrid v3",
   "tokens": [
     "BTC",
@@ -13,8 +13,8 @@
   "last_scan": {
     "BTC": {
       "sym": "BTC",
-      "price": 65741.72,
-      "rsi": 51.7,
+      "price": 67200.11,
+      "rsi": 65.0,
       "conditions": {
         "daily_200_ema": false,
         "1h_kalman_up": true,
@@ -29,13 +29,13 @@
     },
     "ETH": {
       "sym": "ETH",
-      "price": 1718.79,
-      "rsi": 46.9,
+      "price": 1841.18,
+      "rsi": 69.2,
       "conditions": {
         "daily_200_ema": false,
         "1h_kalman_up": true,
-        "vwap_bias": false,
-        "bb_lower_touch": true,
+        "vwap_bias": true,
+        "bb_lower_touch": false,
         "rsi_42_70": true
       },
       "conditions_met": 3,
@@ -45,40 +45,40 @@
     },
     "SOL": {
       "sym": "SOL",
-      "price": 71.11,
-      "rsi": 47.3,
+      "price": 75.72,
+      "rsi": 72.0,
       "conditions": {
         "daily_200_ema": false,
         "1h_kalman_up": true,
-        "vwap_bias": false,
-        "bb_lower_touch": true,
-        "rsi_42_70": true
+        "vwap_bias": true,
+        "bb_lower_touch": false,
+        "rsi_42_70": false
       },
-      "conditions_met": 3,
+      "conditions_met": 2,
       "conditions_total": 5,
       "signal": "none",
       "in_trade": false
     },
     "XRP": {
       "sym": "XRP",
-      "price": 1.1854,
-      "rsi": 47.8,
+      "price": 1.2859,
+      "rsi": 76.0,
       "conditions": {
         "daily_200_ema": false,
         "1h_kalman_up": true,
         "vwap_bias": true,
-        "bb_lower_touch": true,
-        "rsi_42_70": true
+        "bb_lower_touch": false,
+        "rsi_42_70": false
       },
-      "conditions_met": 4,
+      "conditions_met": 2,
       "conditions_total": 5,
       "signal": "none",
       "in_trade": false
     },
     "AAVE": {
       "sym": "AAVE",
-      "price": 69.06,
-      "rsi": 59.2,
+      "price": 76.45,
+      "rsi": 53.4,
       "conditions": {
         "daily_200_ema": false,
         "1h_kalman_up": true,
@@ -91,5 +91,6 @@
       "signal": "none",
       "in_trade": false
     }
-  }
+  },
+  "github_sync": "2026-06-15T16:26:31Z"
 }
