@@ -1,5 +1,5 @@
 {
-  "updated": "2026-06-16T18:13:13Z",
+  "updated": "2026-06-16T23:50:27Z",
   "strategy": "Kalman Hybrid v3",
   "tokens": [
     "BTC",
@@ -13,29 +13,13 @@
   "last_scan": {
     "BTC": {
       "sym": "BTC",
-      "price": 66107.62,
-      "rsi": 66.7,
+      "price": 65648.01,
+      "rsi": 40.9,
       "conditions": {
         "daily_200_ema": false,
         "1h_kalman_up": false,
-        "vwap_bias": true,
-        "bb_lower_touch": false,
-        "rsi_42_70": true
-      },
-      "conditions_met": 2,
-      "conditions_total": 5,
-      "signal": "none",
-      "in_trade": false
-    },
-    "ETH": {
-      "sym": "ETH",
-      "price": 1804.83,
-      "rsi": 73.7,
-      "conditions": {
-        "daily_200_ema": false,
-        "1h_kalman_up": false,
-        "vwap_bias": true,
-        "bb_lower_touch": false,
+        "vwap_bias": false,
+        "bb_lower_touch": true,
         "rsi_42_70": false
       },
       "conditions_met": 1,
@@ -43,31 +27,47 @@
       "signal": "none",
       "in_trade": false
     },
-    "SOL": {
-      "sym": "SOL",
-      "price": 74.13,
-      "rsi": 69.5,
+    "ETH": {
+      "sym": "ETH",
+      "price": 1791.97,
+      "rsi": 42.8,
       "conditions": {
         "daily_200_ema": false,
         "1h_kalman_up": false,
         "vwap_bias": true,
-        "bb_lower_touch": false,
+        "bb_lower_touch": true,
         "rsi_42_70": true
       },
-      "conditions_met": 2,
+      "conditions_met": 3,
+      "conditions_total": 5,
+      "signal": "none",
+      "in_trade": false
+    },
+    "SOL": {
+      "sym": "SOL",
+      "price": 73.5,
+      "rsi": 37.2,
+      "conditions": {
+        "daily_200_ema": false,
+        "1h_kalman_up": false,
+        "vwap_bias": false,
+        "bb_lower_touch": true,
+        "rsi_42_70": false
+      },
+      "conditions_met": 1,
       "conditions_total": 5,
       "signal": "none",
       "in_trade": false
     },
     "XRP": {
       "sym": "XRP",
-      "price": 1.2291,
-      "rsi": 71.1,
+      "price": 1.2173,
+      "rsi": 40.8,
       "conditions": {
         "daily_200_ema": false,
         "1h_kalman_up": false,
-        "vwap_bias": true,
-        "bb_lower_touch": false,
+        "vwap_bias": false,
+        "bb_lower_touch": true,
         "rsi_42_70": false
       },
       "conditions_met": 1,
@@ -77,20 +77,20 @@
     },
     "AAVE": {
       "sym": "AAVE",
-      "price": 75.98,
-      "rsi": 72.8,
+      "price": 76.04,
+      "rsi": 42.3,
       "conditions": {
         "daily_200_ema": false,
-        "1h_kalman_up": true,
+        "1h_kalman_up": false,
         "vwap_bias": true,
-        "bb_lower_touch": false,
-        "rsi_42_70": false
+        "bb_lower_touch": true,
+        "rsi_42_70": true
       },
-      "conditions_met": 2,
+      "conditions_met": 3,
       "conditions_total": 5,
       "signal": "none",
       "in_trade": false
     }
   },
-  "github_sync": "2026-06-16T18:13:27Z"
+  "github_sync": "2026-06-16T23:51:14Z"
 }
